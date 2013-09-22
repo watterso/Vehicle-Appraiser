@@ -182,6 +182,7 @@ function handleData(data, vehicle, tableRow){
 		});
 	}
 }
+$.ajaxSetup({"timeout":300000});
 $("[itemscope]").filter("tr").each(function (){
 	var tableRow = $(this);
 	var tmpObj = {};
@@ -226,15 +227,17 @@ $("[itemscope]").filter("tr").each(function (){
 		});
 	}
 });
-window.setTimeout(function (){
-		console.log("Starting Auto Highlight");
-		for (key in priceDom){
-			var veh = vehicles[key];
-			console.log(key+" "+veh.make+" "+veh.model +" "+ veh.uvc);
-			var dom = priceDom[key];
-			var url = dom.attr("href");
-			if(veh.uvc!=-1){
-				window.setTimeout(getClosure(url,dom,veh),1000);
+window.setInterval(
+	window.setTimeout(function (){
+			console.log("Starting Auto Highlight");
+			for (key in priceDom){
+				var veh = vehicles[key];
+				console.log(key+" "+veh.make+" "+veh.model +" "+ veh.uvc);
+				var dom = priceDom[key];
+				var url = dom.attr("href");
+				if(veh.uvc!=-1 && vehicleInfo[key]==null){
+					window.setTimeout(getClosure(url,dom,veh),1000);
+				}
 			}
-		}
-	},2500);
+		},3000), 
+1000);
