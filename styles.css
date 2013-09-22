@@ -23,6 +23,9 @@
 .modalStyle table{
 	margin: 0 auto;
 }
+.modalStyle td{
+	text-align: center;
+}
 .cond{
 	background: lightgrey;
 	border-radius: 5px;

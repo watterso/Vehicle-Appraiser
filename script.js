@@ -185,13 +185,41 @@ function createUsedHTML(id){
 	var inf = vehicleInfo[id];
 	var out = "<div class='modalStyle'>";
 	out +="<h2>"+veh.year+" "+inf.series+" "+inf.make+" "+inf.model+"</h2>";
+	out +="<div style='margin:5px auto;text-align:center;'>";
+	veh.price.forEach(function(price1){
+		var color = "";
+		if(price1<inf.whole_avg){
+			if(price1<inf.whole_rough){
+				//greenest
+				color = "#90e90c";
+			}else{
+				//less green
+				color = "#d8e109";
+			}
+		}else{
+			if(price1<inf.whole_clean){
+				//yellow
+				color = "#edf218";
+			}else{
+				if(price1<inf.whole_xclean){
+					//orange
+					color = "#f2ac18";
+				}else{
+					//red
+					color = "#f24d18";
+				}
+			}
+		}
+		out+="<div class='cond' style='padding:4px;display:inline;background-color:"+color+";'>$"+price1.formatMoney(0)+"</div>";
+	});
+	out+="</div>";
 	//table
 	out+= "<table class='used'>";
-	out+= "<tfoot><tr><td>Condition</td></tr><tr><td><td>Worst</td><td></td><td></td><td>Best</td></tr></tfoot>";
+	out+= "<tfoot><tr><td><td>Worst</td><td><td><td>Best</td></tr><tr><td><td colspan='4'>Condition</td></tr></tfoot>";
 	out+= "<tbody>";
-	out+= "<tr><td>tradein</td><td><div class='rough cond'>$"+inf.tradein_rough.formatMoney(0)+"</td><td><div class='avg cond'>$"+inf.tradein_avg.formatMoney(0)+"</td><td><div class='clean cond'>$"+inf.tradein_clean.formatMoney(0)+"</td></td></tr>";
-	out+= "<tr><td>wholesale</td><td><div class='rough cond'>$"+inf.whole_rough.formatMoney(0)+"</td><td><div class='avg cond'>$"+inf.whole_avg.formatMoney(0)+"</td><td><div class='clean cond'>$"+inf.whole_clean.formatMoney(0)+"</td><td><div class='xclean cond'>$"+inf.whole_xclean.formatMoney(0)+"</td></tr>";
-	out+= "<tr><td>retail</td><td><div class='rough cond'>$"+inf.retail_rough.formatMoney(0)+"</td><td><div class='avg cond'>$"+inf.retail_avg.formatMoney(0)+"</td><td><div class='clean cond'>$"+inf.retail_clean.formatMoney(0)+"</td><td><div class='xclean cond'>$"+inf.retail_xclean.formatMoney(0)+"</td></tr>";
+	out+= "<tr><td>Tradein</td><td><div class='rough cond'>$"+inf.tradein_rough.formatMoney(0)+"</td><td><div class='avg cond'>$"+inf.tradein_avg.formatMoney(0)+"</td><td><div class='clean cond'>$"+inf.tradein_clean.formatMoney(0)+"</td></td></tr>";
+	out+= "<tr><td>Wholesale</td><td><div class='rough cond'>$"+inf.whole_rough.formatMoney(0)+"</td><td><div class='avg cond'>$"+inf.whole_avg.formatMoney(0)+"</td><td><div class='clean cond'>$"+inf.whole_clean.formatMoney(0)+"</td><td><div class='xclean cond'>$"+inf.whole_xclean.formatMoney(0)+"</td></tr>";
+	out+= "<tr><td>Retail</td><td><div class='rough cond'>$"+inf.retail_rough.formatMoney(0)+"</td><td><div class='avg cond'>$"+inf.retail_avg.formatMoney(0)+"</td><td><div class='clean cond'>$"+inf.retail_clean.formatMoney(0)+"</td><td><div class='xclean cond'>$"+inf.retail_xclean.formatMoney(0)+"</td></tr>";
 	out+="</tbody></table>";
 	out+="</div>";
 	return out;
