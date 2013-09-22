@@ -57,6 +57,21 @@ function isRelevant(result, vehicle){
 	};
 	return eqDetails;
 }
+function getImage(url,dom,obj){
+	/*console.log(url);
+	console.log(dom);
+	console.log(obj);*/
+	$.getJSON(url,function(data){
+		//console.log(data);
+		var info = data.photo.file_contents;
+		if(info!=null){
+			//console.log(info);
+			var img = "<img src='data:image/jpg;base64,"+info+"'/>";
+			var id = dom.attr("id");
+			vehicles[id].img = img;
+		}
+	});
+}
 function getCollector(url,dom,obj){
 	/*console.log(url);
 	console.log(dom);
@@ -64,25 +79,26 @@ function getCollector(url,dom,obj){
     $.get(url, function(data){
     	/*console.log("collector");
     	console.log(data);*/
-    	var info = $($.parseXML(data));
+    	var info = $(data);
     	if(info != null){
 			//console.log(info);
-			vehicleInfo[dom.attr("id")] = info;
+			var tmpInfo = {"fair":info.find("fair").text(),"good":info.find("good").text(),"excl":info.find("excl").text()};
+			//console.log(tmpInfo);
+			vehicleInfo[dom.attr("id")] = tmpInfo;
 			$.data(dom,"info",info);
-			if(obj.price[0]<info.find("fair")){
+			if(obj.price[0]<tmpInfo.fair){
 				//green
 				dom.css("background-color","#90e90c");
-			}else if(obj.price[0]<info.find("good")){
+			}else if(obj.price[0]<tmpInfo.good){
 				//less green
 				dom.css("background-color","#d8e109");
-			}else if(obj.price[0]<info.find("excl")){
+			}else if(obj.price[0]<tmpInfo.fair){
 				//yellow
 				dom.css("background-color","#edf218");
 			}else{
 				//red
 				dom.css("background-color","#f24d18");
 			}
-			//modal here
 		}
     });
 }
@@ -132,13 +148,33 @@ function getClosure(url,dom,obj){
 					}
 				}
 			}
-			//modal here
+			var imUrl = "http://autoAPI.hearst.com/v1/UsedCarWS/UsedCarWS/Photos/"
+			imUrl+=obj.uvc+hearst_api;
+			getImage(imUrl,dom,obj);
 		}else{
 			obj.isCollectable = true;
 			getCollector(collector+obj.uvc,dom,obj);
 		}
     });
-    //console.log("end");
+}
+function createCollectableHTML(id){
+	var veh = vehicles[id];
+	var inf = vehicleInfo[id];
+	var out = "<div class='modalStyle'>";
+	out+= "<h2>"+veh.year+" "+veh.make+" "+veh.model+"</h2>";
+
+	out+="</div>";
+	return out;
+}
+function createUsedHTML(id){
+	var veh = vehicles[id];
+	var inf = vehicleInfo[id];
+	var out = "<div class='modalStyle'>";
+	out +="<h2>"+veh.year+" "+inf.series+" "+inf.make+" "+inf.model+"</h2>";
+
+
+	out+="</div>";
+	return out;
 }
 function handleData(data, vehicle, tableRow){
 	var uvc = -1;
@@ -170,15 +206,19 @@ function handleData(data, vehicle, tableRow){
 	html+="</div>";
 	
 	tableRow.children().filter('.prices').html(html);
-	vehicles["#veh-"+uvc+vehicle.state+vehicle.miles] = vehicle;
-	priceDom["#veh-"+uvc+vehicle.state+vehicle.miles] = $("#veh-"+uvc+vehicle.state+vehicle.miles)
+	vehicles["veh-"+uvc+vehicle.state+vehicle.miles] = vehicle;
+	priceDom["veh-"+uvc+vehicle.state+vehicle.miles] = $("#veh-"+uvc+vehicle.state+vehicle.miles)
 
 	
 	if(uvc!=-1){
 		$("#veh-"+uvc+vehicle.state+vehicle.miles).click(function(){
 			var id = $(this).attr("id");
 			console.log("clicked: "+id);
-			//alert(JSON.stringify(vehicles[id]]));	
+			if(veh.isCollectable){
+				picoModal(createCollectableHTML(id));
+			}else{
+				picoModal(createUsedHTML(id));
+			}
 		});
 	}
 }
