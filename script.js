@@ -6,6 +6,18 @@ var mongo = "https://api.mongolab.com/api/1/databases/uvclookup/collections/uvcd
 var vehicles = {};
 var priceDom = {};
 var vehicleInfo = {};
+//EZ currency!
+//http://stackoverflow.com/a/149099
+Number.prototype.formatMoney = function(c, d, t){
+	var n = this, 
+    c = isNaN(c = Math.abs(c)) ? 2 : c, 
+    d = d == undefined ? "." : d, 
+    t = t == undefined ? "," : t, 
+    s = n < 0 ? "-" : "", 
+    i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", 
+    j = (j = i.length) > 3 ? j % 3 : 0;
+   return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
+ };
 //super-naive and terrible comparison
 function isRelevant(result, vehicle){
 	var details = vehicle.modelDetails.split(" ");
@@ -112,6 +124,7 @@ function getClosure(url,dom,obj){
     	if(info != null){
 			//console.log(info);
 			vehicleInfo[dom.attr("id")] = info;
+			obj.isCollectable = false;
 			var tmpInfo = {};
 			tmpInfo.whole_xclean = info.whole_xclean;
 			tmpInfo.whole_clean = info.whole_clean;
@@ -121,6 +134,7 @@ function getClosure(url,dom,obj){
 			tmpInfo.retail_clean = info.retail_clean;
 			tmpInfo.retail_avg = info.retail_avg;
 			tmpInfo.retail_rough = info.retail_rough;
+			tmpInfo.tradein_xclean = info.tradein_xclean;
 			tmpInfo.tradein_clean = info.tradein_clean;
 			tmpInfo.tradein_avg = info.tradein_avg;
 			tmpInfo.tradein_rough = info.tradein_rough;
@@ -171,8 +185,14 @@ function createUsedHTML(id){
 	var inf = vehicleInfo[id];
 	var out = "<div class='modalStyle'>";
 	out +="<h2>"+veh.year+" "+inf.series+" "+inf.make+" "+inf.model+"</h2>";
-
-
+	//table
+	out+= "<table class='used'>";
+	out+= "<tfoot><tr><td>Condition</td></tr><tr><td><td>Worst</td><td></td><td></td><td>Best</td></tr></tfoot>";
+	out+= "<tbody>";
+	out+= "<tr><td>tradein</td><td><div class='rough cond'>$"+inf.tradein_rough.formatMoney(0)+"</td><td><div class='avg cond'>$"+inf.tradein_avg.formatMoney(0)+"</td><td><div class='clean cond'>$"+inf.tradein_clean.formatMoney(0)+"</td></td></tr>";
+	out+= "<tr><td>wholesale</td><td><div class='rough cond'>$"+inf.whole_rough.formatMoney(0)+"</td><td><div class='avg cond'>$"+inf.whole_avg.formatMoney(0)+"</td><td><div class='clean cond'>$"+inf.whole_clean.formatMoney(0)+"</td><td><div class='xclean cond'>$"+inf.whole_xclean.formatMoney(0)+"</td></tr>";
+	out+= "<tr><td>retail</td><td><div class='rough cond'>$"+inf.retail_rough.formatMoney(0)+"</td><td><div class='avg cond'>$"+inf.retail_avg.formatMoney(0)+"</td><td><div class='clean cond'>$"+inf.retail_clean.formatMoney(0)+"</td><td><div class='xclean cond'>$"+inf.retail_xclean.formatMoney(0)+"</td></tr>";
+	out+="</tbody></table>";
 	out+="</div>";
 	return out;
 }
@@ -214,7 +234,7 @@ function handleData(data, vehicle, tableRow){
 		$("#veh-"+uvc+vehicle.state+vehicle.miles).click(function(){
 			var id = $(this).attr("id");
 			console.log("clicked: "+id);
-			if(veh.isCollectable){
+			if(vehicles[id].isCollectable){
 				picoModal(createCollectableHTML(id));
 			}else{
 				picoModal(createUsedHTML(id));

@@ -18,5 +18,16 @@
 	padding: 0;
 }
 .modalStyle{
-	
+	margin: 0 auto;
+}
+.modalStyle table{
+	margin: 0 auto;
+}
+.cond{
+	background: lightgrey;
+	border-radius: 5px;
+	margin-top: 2px;
+	margin-bottom: 2px;
+	text-align: center;
+	padding: 2px;
 }
