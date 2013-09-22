@@ -1,6 +1,4 @@
-༼ ºل͟º ༽
+Vehicle Appraiser for Ebay
 ========
-
-MHacks Project TBD
-
-༼ ºل͟º ༽༼ ºل͟º ༽༼ ºل͟º ༽
+A chrome extension that augments the listings for vehicles on ebay.
+Currently only compatible with windows.
