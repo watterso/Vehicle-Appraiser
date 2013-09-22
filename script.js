@@ -94,7 +94,7 @@ function getCollector(url,dom,obj){
     	var info = $(data);
     	if(info != null){
 			//console.log(info);
-			var tmpInfo = {"fair":info.find("fair").text(),"good":info.find("good").text(),"excl":info.find("excl").text()};
+			var tmpInfo = {"fair":parseInt(info.find("fair").text(),10),"good":parseInt(info.find("good").text(),10),"excl":parseInt(info.find("excl").text(),10)};
 			//console.log(tmpInfo);
 			vehicleInfo[dom.attr("id")] = tmpInfo;
 			$.data(dom,"info",info);
@@ -104,7 +104,7 @@ function getCollector(url,dom,obj){
 			}else if(obj.price[0]<tmpInfo.good){
 				//less green
 				dom.css("background-color","#d8e109");
-			}else if(obj.price[0]<tmpInfo.fair){
+			}else if(obj.price[0]<tmpInfo.excl){
 				//yellow
 				dom.css("background-color","#edf218");
 			}else{
@@ -175,8 +175,31 @@ function createCollectableHTML(id){
 	var veh = vehicles[id];
 	var inf = vehicleInfo[id];
 	var out = "<div class='modalStyle'>";
-	out+= "<h2>"+veh.year+" "+veh.make+" "+veh.model+"</h2>";
-
+	out+= "<h2 style='text-align:center;'>"+veh.year+" "+veh.make+" "+veh.model+"</h2>";
+	out +="<div style='margin:5px auto;text-align:center;'>";
+	veh.price.forEach(function(price1){
+		var color = "";
+		if(price1<inf.fair){
+			color = "#90e90c";
+		}else if(price1<inf.good){
+			color = "#d8e109";
+		}else if(price1<inf.excl){
+			color = "#edf218";
+		}else{
+			color = "#f24d18";
+		}
+		out+="<div class='cond' style='padding:4px;margin:2px;display:inline;background-color:"+color+";'>$"+price1.formatMoney(0)+"</div>";
+	});
+	out+="</div>";
+	//table
+	out+= "<table class='collectable'>";
+	out+= "<tfoot><tr><td>Worst</td><td><td>Best</td></tr><tr><td colspan='3'>Condition</td></tr></tfoot>";
+	out+= "<tbody>";
+	console.log("rght");
+	out+= "<tr><td><div class='rough cond'>$"+inf.fair.formatMoney(0)+"</td><td><div class='avg cond'>$"+inf.good.formatMoney(0)+"</td><td><div class='clean cond'>$"+inf.excl.formatMoney(0)+"</td></td></tr>";
+	console.log("Asdsa");
+	out+="</tbody></table>";
+	out+="</div>";
 	out+="</div>";
 	return out;
 }
@@ -184,7 +207,7 @@ function createUsedHTML(id){
 	var veh = vehicles[id];
 	var inf = vehicleInfo[id];
 	var out = "<div class='modalStyle'>";
-	out +="<h2>"+veh.year+" "+inf.series+" "+inf.make+" "+inf.model+"</h2>";
+	out +="<h2 style='text-align:center;'>"+veh.year+" "+inf.series+" "+inf.make+" "+inf.model+"</h2>";
 	out +="<div style='margin:5px auto;text-align:center;'>";
 	veh.price.forEach(function(price1){
 		var color = "";
@@ -210,7 +233,7 @@ function createUsedHTML(id){
 				}
 			}
 		}
-		out+="<div class='cond' style='padding:4px;display:inline;background-color:"+color+";'>$"+price1.formatMoney(0)+"</div>";
+		out+="<div class='cond' style='padding:4px;margin:2px;display:inline;background-color:"+color+";'>$"+price1.formatMoney(0)+"</div>";
 	});
 	out+="</div>";
 	//table

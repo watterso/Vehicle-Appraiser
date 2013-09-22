@@ -32,5 +32,29 @@
 	margin-top: 2px;
 	margin-bottom: 2px;
 	text-align: center;
-	padding: 2px;
+	padding: 4px;
+}
+.legend{
+	width: 40px;
+	/*display: inline;*/
+	border-radius: 5px;
+	margin-top: 2px;
+	margin-bottom: 2px;
+	text-align: center;
+	padding: 4px;
+}
+.worst{
+	background-color: #f24d18;
+}
+.worse{
+	background-color: #f2ac18;
+}
+.avg{
+	background-color: #edf218;
+}
+.better{
+	background-color: #d8e109;
+}
+.best{
+	background-color: #90e90c;
 }
