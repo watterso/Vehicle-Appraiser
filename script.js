@@ -1,5 +1,11 @@
-var hearst_api = "95wwucscmjjuveapk9ffm94t"
-var collector = "http://autoapi.hearst.com/v1/cpiwsx.asmx/CurrentUVCValues?api_key="+hearst_api+"&bFillDrilldown=false&sUVC=";
+var hearst_api = "?api_key=95wwucscmjjuveapk9ffm94t"
+var mongo_api = "?apiKey=jIHkv3sxi0kID-9TRpmg_5Yckd2dKF7M"
+var collector = "http://autoapi.hearst.com/v1/cpiwsx.asmx/CurrentUVCValues"+hearst_api+"&bFillDrilldown=false&sUVC=";
+var used_car = "http://autoapi.hearst.com/v1/UsedCarWS/UsedCarWS/UsedVehicle/UVC/";
+var mongo = "https://api.mongolab.com/api/1/databases/uvclookup/collections/uvcdata"+mongo_api;
+var vehicles = {};
+var priceDom = {};
+var vehicleInfo = {};
 //super-naive and terrible comparison
 function isRelevant(result, vehicle){
 	var details = vehicle.modelDetails.split(" ");
@@ -52,15 +58,16 @@ function isRelevant(result, vehicle){
 	return eqDetails;
 }
 function getCollector(url,dom,obj){
-	console.log(url);
+	/*console.log(url);
 	console.log(dom);
-	console.log(obj);
+	console.log(obj);*/
     $.get(url, function(data){
-    	console.log("collector");
-    	console.log(data);
+    	/*console.log("collector");
+    	console.log(data);*/
     	var info = $($.parseXML(data));
     	if(info != null){
-			console.log(info);
+			//console.log(info);
+			vehicleInfo[dom.attr("id")] = info;
 			$.data(dom,"info",info);
 			if(obj.price[0]<info.find("fair")){
 				//green
@@ -80,14 +87,15 @@ function getCollector(url,dom,obj){
     });
 }
 function getClosure(url,dom,obj){
-	console.log(url);
+	/*console.log(url);
 	console.log(dom);
-	console.log(obj);
+	console.log(obj);*/
     $.getJSON(url, function(data){
-    	console.log(data);
+    	//console.log(data);
     	var info = data.used_vehicles.used_vehicle_list[0];
     	if(info != null){
-			console.log(info);
+			//console.log(info);
+			vehicleInfo[dom.attr("id")] = info;
 			var tmpInfo = {};
 			tmpInfo.whole_xclean = info.whole_xclean;
 			tmpInfo.whole_clean = info.whole_clean;
@@ -100,7 +108,7 @@ function getClosure(url,dom,obj){
 			tmpInfo.tradein_clean = info.tradein_clean;
 			tmpInfo.tradein_avg = info.tradein_avg;
 			tmpInfo.tradein_rough = info.tradein_rough;
-			console.log(tmpInfo);
+			//console.log(tmpInfo);
 			$.data(dom,"info",info);
 			if(obj.price[0]<tmpInfo.whole_avg){
 				if(obj.price[0]<tmpInfo.whole_rough){
@@ -126,14 +134,13 @@ function getClosure(url,dom,obj){
 			}
 			//modal here
 		}else{
+			obj.isCollectable = true;
 			getCollector(collector+obj.uvc,dom,obj);
 		}
     });
-    console.log("end");
+    //console.log("end");
 }
 function handleData(data, vehicle, tableRow){
-	var url = "http://autoapi.hearst.com/v1/UsedCarWS/UsedCarWS/UsedVehicle/UVC/";
-	var api = "?api_key=95wwucscmjjuveapk9ffm94t";
 	var uvc = -1;
 	var maxRelevance = 0;
 	data.forEach(function (result){
@@ -142,7 +149,7 @@ function handleData(data, vehicle, tableRow){
 			uvc = result.uvc;
 		}
 	});
-	var mUrl = url+uvc+api;
+	var mUrl = used_car+uvc+hearst_api;
 	mUrl += "&state="+vehicle.state;
 	mUrl += "&mileage="+vehicle.miles;
 	vehicle.url = mUrl;
@@ -163,14 +170,15 @@ function handleData(data, vehicle, tableRow){
 	html+="</div>";
 	
 	tableRow.children().filter('.prices').html(html);
+	vehicles["#veh-"+uvc+vehicle.state+vehicle.miles] = vehicle;
+	priceDom["#veh-"+uvc+vehicle.state+vehicle.miles] = $("#veh-"+uvc+vehicle.state+vehicle.miles)
+
 	
 	if(uvc!=-1){
 		$("#veh-"+uvc+vehicle.state+vehicle.miles).click(function(){
-			var url = $(this).attr("href");
-			var div = $(this);
-			if($.data(div,"info")==null){
-				getClosure(url,div,vehicle);
-			}	
+			var id = $(this).attr("id");
+			console.log("clicked: "+id);
+			//alert(JSON.stringify(vehicles[id]]));	
 		});
 	}
 }
@@ -207,15 +215,26 @@ $("[itemscope]").filter("tr").each(function (){
 		tmpObj.state = state;
 		tmpObj.price = price
 		tmpObj.formattedPrice = formattedPrice;
-		var mUrl = "https://api.mongolab.com/api/1/databases/uvclookup/collections/uvcdata?apiKey=jIHkv3sxi0kID-9TRpmg_5Yckd2dKF7M";
 		var query = {
 			"make": {"$regex":tmpObj.make, "$options":"i"},
 			"model": {"$regex":".*"+tmpObj.model+".*", "$options":"i"},
 			"year" : tmpObj.year
 		};
-		mUrl+="&q="+encodeURI(JSON.stringify(query));
+		var mUrl =mongo +"&q="+encodeURI(JSON.stringify(query));
 		$.get(mUrl, function (data){
 			handleData(data, tmpObj, tableRow);
 		});
 	}
 });
+window.setTimeout(function (){
+		console.log("Starting Auto Highlight");
+		for (key in priceDom){
+			var veh = vehicles[key];
+			console.log(key+" "+veh.make+" "+veh.model +" "+ veh.uvc);
+			var dom = priceDom[key];
+			var url = dom.attr("href");
+			if(veh.uvc!=-1){
+				window.setTimeout(getClosure(url,dom,veh),1000);
+			}
+		}
+	},2500);
