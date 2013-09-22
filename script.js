@@ -15,9 +15,6 @@ function isRelevant(result, vehicle){
 				}
 			};
 		};
-		if(eqDetails > 0){
-			return true;
-		}
 	}
 	//compare model details with given model data
 	for (var i = details.length - 1; i >= 0; i--) {
@@ -28,10 +25,6 @@ function isRelevant(result, vehicle){
 			}
 		};
 	};
-	if(eqDetails > 0){
-		return true;
-	}
-	eqDetails = 0;
 	var linkArr = vehicle.linkText.split(" ");
 	if(result.style != null){
 		//compare link text with give style data
@@ -44,9 +37,6 @@ function isRelevant(result, vehicle){
 				}
 			};
 		};
-		if(eqDetails > 0){
-			return true;
-		}
 	}
 	//compare link text with given model data
 	for (var i = linkArr.length - 1; i >= 0; i--) {
@@ -57,30 +47,57 @@ function isRelevant(result, vehicle){
 			}
 		};
 	};
-	if(eqDetails > 0){
-		return true;
-	}
-	return false;
+	return eqDetails;
 }
 function handleData(data, vehicle, tableRow){
 	var url = "http://autoapi.hearst.com/v1/UsedCarWS/UsedCarWS/UsedVehicle/UVC/";
 	var api = "?api_key=95wwucscmjjuveapk9ffm94t";
-	var res = "<div class=\"appraise\">"+JSON.stringify(vehicle)+"</div>";
-	$(res).insertAfter($(tableRow).parent().parent());
+	var uvc = -1;
+	var maxRelevance = 0;
 	data.forEach(function (result){
-		if(isRelevant(result,vehicle)){
-			var tmpObj = {"make":result.make, "model":result.model,"year":result.year, "uvc":result.uvc};
-			var mUrl = url+tmpObj.uvc+api;
-			mUrl += "&state="+vehicle.state;
-			mUrl += "&mileage="+vehicle.miles;
-			$.get(mUrl, function (data){
-				handleData(data, tmpObj, tableRow);
-			});
-			//var row = "<div class=\"appraise\">"+JSON.stringify(tmpObj)+"</div>";
-			//$(row).insertAfter($(tableRow).parent().parent());
+		var relevance = isRelevant(result,vehicle)
+		if(relevance>maxRelevance){
+			uvc = result.uvc;
 		}
 	});
+	var mUrl = url+uvc+api;
+	mUrl += "&state="+vehicle.state;
+	mUrl += "&mileage="+vehicle.miles;
+	vehicle.url = mUrl;
+	vehicle.uvc = uvc;
 
+	var res = "<div class=\"appraise\">"+JSON.stringify(vehicle)+"</div>";
+	//$(res).insertAfter($(tableRow).parent().parent());
+
+	tableRow.children().filter('.prices').html("");
+	var html = "";
+	vehicle.formattedPrice.forEach(function(price){
+		html+="<div class=\"pInfo\">"+price+"</div>";
+	});
+	tableRow.children().filter('.prices').html(html);
+	/*if(vehicle.state == "OH"){
+		console.log(mUrl);
+		$.get(mUrl, function (data){
+			console.log(data);
+			var info = data.used_vehicles.used_vehicle_list[0];
+			console.log(info);
+			var tmpInfo = {};
+			tmpInfo.whole_xclean = info.whole_xclean;
+			tmpInfo.whole_clean = info.whole_clean;
+			tmpInfo.whole_avg = info.whole_avg;
+			tmpInfo.whole_rough = info.whole_rough;
+			tmpInfo.retail_xclean = info.retail_xclean;
+			tmpInfo.retail_clean = info.retail_clean;
+			tmpInfo.retail_avg = info.retail_avg;
+			tmpInfo.retail_rough = info.retail_rough;
+			tmpInfo.tradein_clean = info.tradein_clean;
+			tmpInfo.tradein_avg = info.tradein_avg;
+			tmpInfo.tradein_rough = info.tradein_rough;
+			var row = "<div class=\"appraise\">"+JSON.stringify(tmpInfo)+"</div>";
+			$(row).insertAfter($(tableRow).parent().parent());
+		});
+		console.log("POST GET");
+	}*/
 
 }
 $("[itemscope]").filter("tr").each(function (){
@@ -91,6 +108,17 @@ $("[itemscope]").filter("tr").each(function (){
 	var linkText = cols.filter('.details').children().filter('.ttl').children().filter('a').attr("title");
 	var miles = cols.filter('.mileage').children().first().text()
 	var state = cols.filter('.location').children().first().children().text().split(", ")[1];
+	var price = [];
+	var formattedPrice = [];
+	if(cols.filter('.prices').children().size() == 0){
+		price.push(parseInt(cols.filter('.prices').text().substring(1).replace(",",""),10));
+		formattedPrice.push(cols.filter('.prices').text());
+	}else{
+		price.push(parseInt($(cols.filter('.prices').children().get(0)).text().substring(1).replace(",",""),10));
+		formattedPrice.push($(cols.filter('.prices').children().get(0)).text());
+		price.push(parseInt($(cols.filter('.prices').children().get(1)).text().substring(1).replace(",",""),10));
+		formattedPrice.push($(cols.filter('.prices').children().get(1)).text());
+	}
 	var titleSplit = superTitle.split(":");
 	//only parseable vehicle names accepted
 	if(titleSplit.length == 2){
@@ -101,8 +129,10 @@ $("[itemscope]").filter("tr").each(function (){
 		tmpObj.modelDetails = modelArr.join(" ");
 		tmpObj.year = parseInt(cols.filter('.year').first().text(),10);
 		tmpObj.linkText = linkText;
-		tmpObj.miles = miles;
+		tmpObj.miles = parseInt(miles.replace(",",""),10);
 		tmpObj.state = state;
+		tmpObj.price = price
+		tmpObj.formattedPrice = formattedPrice;
 		var mUrl = "https://api.mongolab.com/api/1/databases/uvclookup/collections/uvcdata?apiKey=jIHkv3sxi0kID-9TRpmg_5Yckd2dKF7M";
 		var query = {
 			"make": {"$regex":tmpObj.make, "$options":"i"},
