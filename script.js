@@ -1,3 +1,5 @@
+var hearst_api = "95wwucscmjjuveapk9ffm94t"
+var collector = "http://autoapi.hearst.com/v1/cpiwsx.asmx/CurrentUVCValues?api_key="+hearst_api+"&bFillDrilldown=false&sUVC=";
 //super-naive and terrible comparison
 function isRelevant(result, vehicle){
 	var details = vehicle.modelDetails.split(" ");
@@ -49,15 +51,83 @@ function isRelevant(result, vehicle){
 	};
 	return eqDetails;
 }
-function getClosure(url, obj){
+function getCollector(url,dom,obj){
 	console.log(url);
+	console.log(dom);
 	console.log(obj);
     $.get(url, function(data){
-    	console.log("HERE");
-    	/*alert(JSON.stringify(data));
+    	console.log("collector");
     	console.log(data);
-    	var res = "<div class=\"appraise\">"+JSON.stringify(data)+"</div>";
-        $(res).insertAfter(obj.parent().parent());*/
+    	var info = $($.parseXML(data));
+    	if(info != null){
+			console.log(info);
+			$.data(dom,"info",info);
+			if(obj.price[0]<info.find("fair")){
+				//green
+				dom.css("background-color","#90e90c");
+			}else if(obj.price[0]<info.find("good")){
+				//less green
+				dom.css("background-color","#d8e109");
+			}else if(obj.price[0]<info.find("excl")){
+				//yellow
+				dom.css("background-color","#edf218");
+			}else{
+				//red
+				dom.css("background-color","#f24d18");
+			}
+			//modal here
+		}
+    });
+}
+function getClosure(url,dom,obj){
+	console.log(url);
+	console.log(dom);
+	console.log(obj);
+    $.getJSON(url, function(data){
+    	console.log(data);
+    	var info = data.used_vehicles.used_vehicle_list[0];
+    	if(info != null){
+			console.log(info);
+			var tmpInfo = {};
+			tmpInfo.whole_xclean = info.whole_xclean;
+			tmpInfo.whole_clean = info.whole_clean;
+			tmpInfo.whole_avg = info.whole_avg;
+			tmpInfo.whole_rough = info.whole_rough;
+			tmpInfo.retail_xclean = info.retail_xclean;
+			tmpInfo.retail_clean = info.retail_clean;
+			tmpInfo.retail_avg = info.retail_avg;
+			tmpInfo.retail_rough = info.retail_rough;
+			tmpInfo.tradein_clean = info.tradein_clean;
+			tmpInfo.tradein_avg = info.tradein_avg;
+			tmpInfo.tradein_rough = info.tradein_rough;
+			console.log(tmpInfo);
+			$.data(dom,"info",info);
+			if(obj.price[0]<tmpInfo.whole_avg){
+				if(obj.price[0]<tmpInfo.whole_rough){
+					//greenest
+					dom.css("background-color","#90e90c");
+				}else{
+					//less green
+					dom.css("background-color","#d8e109");
+				}
+			}else{
+				if(obj.price[0]<tmpInfo.whole_clean){
+					//yellow
+					dom.css("background-color","#edf218");
+				}else{
+					if(obj.price[0]<tmpInfo.whole_xclean){
+						//orange
+						dom.css("background-color","#f2ac18");
+					}else{
+						//red
+						dom.css("background-color","#f24d18");
+					}
+				}
+			}
+			//modal here
+		}else{
+			getCollector(collector+obj.uvc,dom,obj);
+		}
     });
     console.log("end");
 }
@@ -98,76 +168,12 @@ function handleData(data, vehicle, tableRow){
 		$("#veh-"+uvc+vehicle.state+vehicle.miles).click(function(){
 			var url = $(this).attr("href");
 			var div = $(this);
-			getClosure(url,div);
+			if($.data(div,"info")==null){
+				getClosure(url,div,vehicle);
+			}	
 		});
 	}
-	/*$.ajax({
-	        url: mURL,
-	        dataType: "jsonp", // jsonp required for cross-domain access
-	        type: "GET",
-	        success: function (data) {
-	            var sTextResult = "";
-	            var sMakeName = "";
-	            var sYearName = "";
-	            $.each(data.used_vehicles.used_vehicle_list, function () {
-	                sTextResult += this.full_year + " " + this.make + " " + this.model + " " + this.series + " " + this.body_style + "<br />";
-	            });
-	            var row = "<div class=\"appraise\">"+sTextResult+"</div>";
-				$(row).insertAfter($(tableRow).parent().parent());
-				console.log(sTextResult);
-	        },
-	        error: function (jqXHR, textStatus, errorThrown) {
-	        	var row = "<div class=\"appraise\">"+errorThrown+"</div>";
-				$(row).insertAfter($(tableRow).parent().parent());
-	        }
-	    });*/
-		//var target = $(event.target);
-		//var obj = JSON.parse(decodeURI($(target).attr("vehicle")));
-		/*$.get(mUrl, function (data){
-			console.log(data);
-			var info = data.used_vehicles.used_vehicle_list[0];
-			console.log(info);
-			var tmpInfo = {};
-			tmpInfo.whole_xclean = info.whole_xclean;
-			tmpInfo.whole_clean = info.whole_clean;
-			tmpInfo.whole_avg = info.whole_avg;
-			tmpInfo.whole_rough = info.whole_rough;
-			tmpInfo.retail_xclean = info.retail_xclean;
-			tmpInfo.retail_clean = info.retail_clean;
-			tmpInfo.retail_avg = info.retail_avg;
-			tmpInfo.retail_rough = info.retail_rough;
-			tmpInfo.tradein_clean = info.tradein_clean;
-			tmpInfo.tradein_avg = info.tradein_avg;
-			tmpInfo.tradein_rough = info.tradein_rough;
-			var row = "<div class=\"appraise\">"+JSON.stringify(tmpInfo)+"</div>";
-			$(row).insertAfter($(tableRow).parent().parent());
-		});*/
-	/*if(vehicle.state == "OH"){
-		console.log(mUrl);
-		$.get(mUrl, function (data){
-			console.log(data);
-			var info = data.used_vehicles.used_vehicle_list[0];
-			console.log(info);
-			var tmpInfo = {};
-			tmpInfo.whole_xclean = info.whole_xclean;
-			tmpInfo.whole_clean = info.whole_clean;
-			tmpInfo.whole_avg = info.whole_avg;
-			tmpInfo.whole_rough = info.whole_rough;
-			tmpInfo.retail_xclean = info.retail_xclean;
-			tmpInfo.retail_clean = info.retail_clean;
-			tmpInfo.retail_avg = info.retail_avg;
-			tmpInfo.retail_rough = info.retail_rough;
-			tmpInfo.tradein_clean = info.tradein_clean;
-			tmpInfo.tradein_avg = info.tradein_avg;
-			tmpInfo.tradein_rough = info.tradein_rough;
-			var row = "<div class=\"appraise\">"+JSON.stringify(tmpInfo)+"</div>";
-			$(row).insertAfter($(tableRow).parent().parent());
-		});
-		console.log("POST GET");
-	}*/
-
 }
- //$.ajaxSetup({ cache: false });
 $("[itemscope]").filter("tr").each(function (){
 	var tableRow = $(this);
 	var tmpObj = {};
