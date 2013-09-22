@@ -70,11 +70,107 @@ function handleData(data, vehicle, tableRow){
 	//$(res).insertAfter($(tableRow).parent().parent());
 
 	tableRow.children().filter('.prices').html("");
-	var html = "";
+	var html = "<div class=\"pInfo\" id=\"veh-"+uvc+vehicle.state+vehicle.miles+"\" href=\""+vehicle.url+"\">";
 	vehicle.formattedPrice.forEach(function(price){
-		html+="<div class=\"pInfo\">"+price+"</div>";
+		html+='<div>'+price+"</div>";
 	});
+	html+="</div>";
 	tableRow.children().filter('.prices').html(html);
+	$("#veh-"+uvc+vehicle.state+vehicle.miles).click(function(){
+		var url = $(this).attr("href");
+		var div = $(this);
+		console.log(url);
+		$.get(url, function (data){
+			console.log(data);
+		});
+		/*$.ajax({
+	        url: url,
+	        dataType: "jsonp", // jsonp required for cross-domain access
+	        type: "GET",
+	        success: function (data) {
+	            var sTextResult = "";
+	            var sMakeName = "";
+	            var sYearName = "";
+	            $.each(data.used_vehicles.used_vehicle_list, function () {
+	                sTextResult += this.full_year + " " + this.make + " " + this.model + " " + this.series + " " + this.body_style + "<br />";
+	            });
+	            var row = "<div class=\"appraise\">"+sTextResult+"</div>";
+				$(row).insertAfter($(tableRow).parent().parent());
+				console.log(sTextResult);
+	        },
+	        error: function (jqXHR, textStatus, errorThrown) {
+	        	var row = "<div class=\"appraise\">"+errorThrown+"</div>";
+				$(row).insertAfter($(tableRow).parent().parent());
+	        }
+	    });*/
+		/*var xhr = new XMLHttpRequest();
+		xhr.setRequestHeader("If-Modified-Since", "Sat, 1 Jan 2005 00:00:00 GMT");
+		xhr.open("GET", url, true);
+		xhr.onreadystatechange = function() {
+			console.log("STATE: "+xhr.readyState);
+		  if (xhr.readyState == 4) {
+		    var resp = JSON.parse(xhr.responseText);
+		    var info = resp.used_vehicles.used_vehicle_list[0];
+		    var tmpInfo = {};
+			tmpInfo.whole_xclean = info.whole_xclean;
+			tmpInfo.whole_clean = info.whole_clean;
+			tmpInfo.whole_avg = info.whole_avg;
+			tmpInfo.whole_rough = info.whole_rough;
+			tmpInfo.retail_xclean = info.retail_xclean;
+			tmpInfo.retail_clean = info.retail_clean;
+			tmpInfo.retail_avg = info.retail_avg;
+			tmpInfo.retail_rough = info.retail_rough;
+			tmpInfo.tradein_clean = info.tradein_clean;
+			tmpInfo.tradein_avg = info.tradein_avg;
+			tmpInfo.tradein_rough = info.tradein_rough;
+		    
+		    console.log(tmpInfo);
+		  }
+		}
+		xhr.send();*/
+		console.log("end");
+	})
+	/*$.ajax({
+	        url: mURL,
+	        dataType: "jsonp", // jsonp required for cross-domain access
+	        type: "GET",
+	        success: function (data) {
+	            var sTextResult = "";
+	            var sMakeName = "";
+	            var sYearName = "";
+	            $.each(data.used_vehicles.used_vehicle_list, function () {
+	                sTextResult += this.full_year + " " + this.make + " " + this.model + " " + this.series + " " + this.body_style + "<br />";
+	            });
+	            var row = "<div class=\"appraise\">"+sTextResult+"</div>";
+				$(row).insertAfter($(tableRow).parent().parent());
+				console.log(sTextResult);
+	        },
+	        error: function (jqXHR, textStatus, errorThrown) {
+	        	var row = "<div class=\"appraise\">"+errorThrown+"</div>";
+				$(row).insertAfter($(tableRow).parent().parent());
+	        }
+	    });*/
+		//var target = $(event.target);
+		//var obj = JSON.parse(decodeURI($(target).attr("vehicle")));
+		/*$.get(mUrl, function (data){
+			console.log(data);
+			var info = data.used_vehicles.used_vehicle_list[0];
+			console.log(info);
+			var tmpInfo = {};
+			tmpInfo.whole_xclean = info.whole_xclean;
+			tmpInfo.whole_clean = info.whole_clean;
+			tmpInfo.whole_avg = info.whole_avg;
+			tmpInfo.whole_rough = info.whole_rough;
+			tmpInfo.retail_xclean = info.retail_xclean;
+			tmpInfo.retail_clean = info.retail_clean;
+			tmpInfo.retail_avg = info.retail_avg;
+			tmpInfo.retail_rough = info.retail_rough;
+			tmpInfo.tradein_clean = info.tradein_clean;
+			tmpInfo.tradein_avg = info.tradein_avg;
+			tmpInfo.tradein_rough = info.tradein_rough;
+			var row = "<div class=\"appraise\">"+JSON.stringify(tmpInfo)+"</div>";
+			$(row).insertAfter($(tableRow).parent().parent());
+		});*/
 	/*if(vehicle.state == "OH"){
 		console.log(mUrl);
 		$.get(mUrl, function (data){
@@ -100,6 +196,7 @@ function handleData(data, vehicle, tableRow){
 	}*/
 
 }
+ $.ajaxSetup({ cache: false });
 $("[itemscope]").filter("tr").each(function (){
 	var tableRow = $(this);
 	var tmpObj = {};
