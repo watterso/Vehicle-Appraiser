@@ -5,3 +5,5 @@ Currently only compatible with windows.
 
 
 Not under active development.
+
+A hackathon project written at [mhacks](http://mhacks.org/) 2013
